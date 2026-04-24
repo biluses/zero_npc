@@ -28,6 +28,17 @@ const envSchema = z
 
     BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(15).default(12),
 
+    // Pepper: secret del servidor que se concatena a la contraseña ANTES de bcrypt.
+    // Protege contra filtraciones de BD: los hashes no son crackeables sin el pepper.
+    // DEBE ser >= 32 bytes. Generar con `openssl rand -base64 48`.
+    // NUNCA rotar salvo que se fuerce reset de password a todos los users.
+    PASSWORD_PEPPER: z.string().min(32, 'PASSWORD_PEPPER must be at least 32 chars'),
+
+    // Clave AES-256 (32 bytes en base64) para cifrar PII en reposo en Postgres.
+    // Generar con `openssl rand -base64 32`. Longitud exacta 32 bytes tras decodificar.
+    // Rotar implica re-encriptar toda la tabla users (migration ad-hoc).
+    DATA_ENCRYPTION_KEY: z.string().min(43, 'DATA_ENCRYPTION_KEY must be 32 bytes base64 (>=43 chars)'),
+
     // Email provider - Resend tiene prioridad si RESEND_API_KEY está definida
     RESEND_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().default('Zero NPC <onboarding@resend.dev>'),

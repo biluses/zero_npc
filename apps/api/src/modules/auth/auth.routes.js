@@ -2,7 +2,11 @@
 
 const { Router } = require('express');
 const { validate } = require('../../middleware/validate');
-const { authLimiter } = require('../../middleware/rate-limit');
+const {
+  authLimiter,
+  checkEmailLimiter,
+  validateStepLimiter,
+} = require('../../middleware/rate-limit');
 const { requireAuth } = require('../../middleware/auth');
 const controller = require('./auth.controller');
 const schemas = require('./auth.schemas');
@@ -15,6 +19,22 @@ router.post('/login', authLimiter, validate({ body: schemas.loginSchema }), cont
 router.post('/refresh', validate({ body: schemas.refreshSchema }), controller.refresh);
 router.post('/forgot-password', authLimiter, validate({ body: schemas.forgotSchema }), controller.forgot);
 router.post('/reset-password', authLimiter, validate({ body: schemas.resetSchema }), controller.reset);
+
+// Endpoints de validación server-side del flujo signup.
+// Rate limits específicos para anti-enumeración.
+router.post(
+  '/check-email',
+  checkEmailLimiter,
+  validate({ body: schemas.checkEmailSchema }),
+  controller.checkEmail,
+);
+router.post(
+  '/validate-step',
+  validateStepLimiter,
+  validate({ body: schemas.validateStepSchema }),
+  controller.validateStep,
+);
+
 router.get('/me', requireAuth, controller.me);
 
 module.exports = router;

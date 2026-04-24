@@ -29,7 +29,9 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: 'zero-npc',
   storage,
-  whitelist: ['auth'],
+  // signup se persiste para que la navegación entre pasos (paso-1 → paso-2 → paso-3)
+  // no pierda datos. Se limpia con clearSignup al completar o cancelar el flujo.
+  whitelist: ['auth', 'signup'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

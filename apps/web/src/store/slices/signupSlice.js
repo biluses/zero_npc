@@ -21,6 +21,9 @@ const initialState = {
   postalCode: '',
   province: '',
   avatarPreviewUrl: null,
+  // Dirección de la última navegación para animar las transiciones entre pasos.
+  // 'forward' al ir 1→2 o 2→3; 'back' al volver 3→2 o 2→1; 'initial' al entrar.
+  direction: 'initial',
 };
 
 const signupSlice = createSlice({
@@ -44,11 +47,20 @@ const signupSlice = createSlice({
     setAvatarPreview(state, action) {
       state.avatarPreviewUrl = action.payload || null;
     },
+    setDirection(state, action) {
+      state.direction = action.payload || 'forward';
+    },
     clearSignup() {
       return initialState;
     },
   },
 });
 
-export const { setStep1, setStep2, setAvatarPreview, clearSignup } = signupSlice.actions;
+export const {
+  setStep1,
+  setStep2,
+  setAvatarPreview,
+  setDirection,
+  clearSignup,
+} = signupSlice.actions;
 export default signupSlice.reducer;

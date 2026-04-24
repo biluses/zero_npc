@@ -21,6 +21,30 @@ const authLimiter = rateLimit({
 });
 
 /**
+ * Limiters específicos para el flujo signup (anti-enumeración).
+ *
+ * - checkEmailLimiter: 30 requests / 10 min por IP. UX: user escribe email y
+ *   comprobamos debounced; 30 req es mucho más de lo que un user real haría.
+ *   Un atacante con lista de millones queda limitado a ~4300/día por IP.
+ *
+ * - validateStepLimiter: 60 requests / 10 min por IP. Cubre la navegación
+ *   adelante/atrás en los pasos + reintentos con errores.
+ */
+const checkEmailLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 30,
+  standardHeaders: 'draft-7',
+  message: { status: 'error', code: 'TOO_MANY_REQUESTS', message: 'Demasiadas comprobaciones, espera un momento' },
+});
+
+const validateStepLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 60,
+  standardHeaders: 'draft-7',
+  message: { status: 'error', code: 'TOO_MANY_REQUESTS', message: 'Demasiadas validaciones, espera un momento' },
+});
+
+/**
  * Limiters específicos por acción de usuario autenticado.
  * Key por user.id (cae al IP si no hay user) para que un atacante con muchas
  * cuentas no consuma cuotas globales.
@@ -64,6 +88,8 @@ const uploadLimiter = rateLimit({
 module.exports = {
   globalLimiter,
   authLimiter,
+  checkEmailLimiter,
+  validateStepLimiter,
   postCreateLimiter,
   commentLimiter,
   friendRequestLimiter,

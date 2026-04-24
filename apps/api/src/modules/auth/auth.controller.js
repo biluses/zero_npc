@@ -38,4 +38,14 @@ const me = asyncHandler(async (req, res) => {
   res.json({ status: 'ok', data: { user: req.user.toPublicJSON() } });
 });
 
-module.exports = { register, verifyOtp, login, refresh, forgot, reset, me };
+const checkEmail = asyncHandler(async (req, res) => {
+  const result = await service.checkEmail(req.body);
+  res.json({ status: 'ok', data: result });
+});
+
+const validateStep = asyncHandler(async (req, res) => {
+  const result = await service.validateStep(req.body);
+  res.json({ status: 'ok', data: result });
+});
+
+module.exports = { register, verifyOtp, login, refresh, forgot, reset, me, checkEmail, validateStep };

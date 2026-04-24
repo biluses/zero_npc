@@ -1,37 +1,47 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
 import { authApi } from '@/services/authApi';
-import { usersApi } from '@/services/domainApi';
-import { clearSignup, setAvatarPreview } from '@/store/slices/signupSlice';
+import { setAvatarPreview, setDirection } from '@/store/slices/signupSlice';
+import { firstErrorMessage } from '@/lib/formErrors';
 import { SignupShell } from '../SignupShell';
 
+const MAX_AVATAR_MB = 5;
+const STORAGE_AVATAR = 'zero-npc-pending-avatar';
+const STORAGE_AVATAR_TYPE = 'zero-npc-pending-avatar-type';
+
 /**
- * Signup paso 3 (XD `Signup – 3.png`).
- * Avatar circular gris con iniciales auto + link "Añadir una foto" → file picker.
- * CTA "Hecho" → ejecuta:
- *   1. authApi.register({ email, password, username })
- *   2. usersApi.updateMe({ fullName, address... })
- *   3. usersApi.uploadAvatar(file)  (si hay foto)
- *   4. router.replace('/verify-otp?email=...')
+ * Signup paso 3 — Avatar (opcional) + submit final.
+ *
+ * - Back → paso 2 (preserva estado).
+ * - Submit:
+ *    1. (Opcional) valida metadata del avatar en backend con validate-step.
+ *    2. POST /auth/register con email + password + username + profile completo.
+ *       El backend cifra PII en reposo automáticamente.
+ *    3. Si hay avatar, lo persistimos en sessionStorage (base64) para que
+ *       applyPendingSignup lo suba tras el primer login.
+ *    4. Redirect a /verify-otp.
  */
 export default function SignupStep3Page() {
   const router = useRouter();
   const dispatch = useDispatch();
   const stored = useSelector((s) => s.signup);
+  const direction = useSelector((s) => s.signup.direction);
   const fileRef = useRef(null);
+
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!stored.email || !stored.password || !stored.fullName) {
       router.replace('/signup/paso-1');
     }
-  }, [stored, router]);
+     
+  }, []);
 
   const initials = (stored.fullName || stored.email || '??')
     .replace(/[@.]/g, ' ')
@@ -49,59 +59,83 @@ export default function SignupStep3Page() {
     const f = e.target.files?.[0];
     if (!f) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) {
-      return toast.error('Solo se aceptan imágenes JPG, PNG o WebP');
+      return toast.error('Solo se aceptan JPG, PNG o WebP');
     }
-    if (f.size > 5 * 1024 * 1024) {
-      return toast.error('La imagen no puede superar 5 MB');
+    if (f.size > MAX_AVATAR_MB * 1024 * 1024) {
+      return toast.error(`Máximo ${MAX_AVATAR_MB} MB`);
     }
     setFile(f);
-    const url = URL.createObjectURL(f);
-    dispatch(setAvatarPreview(url));
+    dispatch(setAvatarPreview(URL.createObjectURL(f)));
+  }
+
+  function onBack() {
+    dispatch(setDirection('back'));
+    router.push('/signup/paso-2');
+  }
+
+  async function persistAvatarToSession(f) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          sessionStorage.setItem(STORAGE_AVATAR, reader.result);
+          sessionStorage.setItem(STORAGE_AVATAR_TYPE, f.type);
+        } catch (_e) {
+          // Cuota de sessionStorage excedida o bloqueada: no bloqueamos el flujo.
+        }
+        resolve();
+      };
+      reader.onerror = () => resolve();
+      reader.readAsDataURL(f);
+    });
   }
 
   async function onSubmit() {
-    setLoading(true);
+    if (submitting) return;
+    setSubmitting(true);
     try {
-      // 1. Registro principal.
+      // (Opcional) validación del avatar en backend.
+      if (file) {
+        await authApi.validateStep({
+          step: 3,
+          avatarMimetype: file.type,
+          avatarSizeBytes: file.size,
+        }).catch(() => { /* soft-fail: el upload real se valida en /users/me/avatar */ });
+      }
+
+      // Registro con datos completos — backend cifra PII.
       await authApi.register({
         email: stored.email,
         password: stored.password,
         username: stored.username,
+        profile: {
+          fullName: stored.fullName,
+          addressLine1: stored.addressLine1,
+          addressLine2: stored.addressLine2 || null,
+          postalCode: stored.postalCode,
+          province: stored.province,
+        },
       });
 
-      // 2. Guardamos el avatar temporalmente en sessionStorage como base64,
-      //    porque aún no hay login (el user debe verificar el OTP primero).
-      //    Tras el primer login, `useApplyPendingSignup` aplica los datos.
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            sessionStorage.setItem('zero-npc-pending-avatar', reader.result);
-            sessionStorage.setItem('zero-npc-pending-avatar-type', file.type);
-          } catch (_e) {
-            // sessionStorage puede fallar si excede cuota; no bloqueamos el flujo.
-          }
-        };
-        reader.readAsDataURL(file);
-      }
+      if (file) await persistAvatarToSession(file);
 
       toast.success('Cuenta creada. Te hemos enviado un código por email.');
       router.replace(`/verify-otp?email=${encodeURIComponent(stored.email)}`);
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Error al crear la cuenta');
+      toast.error(firstErrorMessage(err, 'Error al crear la cuenta'));
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   }
 
   return (
-    <SignupShell step={3}>
-      <div className="card-soft p-8 flex flex-col items-center justify-center gap-3">
+    <SignupShell step={3} direction={direction} onBack={onBack}>
+      <div className="card-soft p-8 flex flex-col items-center justify-center gap-3 flex-1">
         <button
           type="button"
           onClick={onPickFile}
           aria-label="Añadir una foto"
-          className="h-44 w-44 rounded-full bg-white flex items-center justify-center overflow-hidden shadow-card"
+          className="h-44 w-44 rounded-full bg-white flex items-center justify-center overflow-hidden shadow-card transition active:scale-95"
         >
           {stored.avatarPreviewUrl ? (
             <Image
@@ -117,7 +151,7 @@ export default function SignupStep3Page() {
         </button>
 
         <button type="button" onClick={onPickFile} className="link-magenta mt-2">
-          Añadir una foto
+          {stored.avatarPreviewUrl ? 'Cambiar foto' : 'Añadir una foto'}
         </button>
 
         <input
@@ -127,14 +161,18 @@ export default function SignupStep3Page() {
           onChange={onFileChange}
           className="hidden"
         />
+
+        <p className="text-[11px] text-text-muted text-center mt-2">
+          Podrás cambiarla después desde tu perfil.
+        </p>
       </div>
 
       <button
         onClick={onSubmit}
-        disabled={loading}
-        className="btn-yellow mt-8"
+        disabled={submitting}
+        className="btn-yellow mt-6"
       >
-        {loading ? 'Creando cuenta…' : 'Hecho'}
+        {submitting ? 'Creando cuenta…' : 'Hecho'}
       </button>
     </SignupShell>
   );
