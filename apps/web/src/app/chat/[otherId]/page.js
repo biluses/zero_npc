@@ -33,6 +33,7 @@ function Inner() {
   const { otherId } = useParams();
   const me = useSelector((s) => s.auth.user);
   const accessToken = useSelector((s) => s.auth.accessToken);
+  const isOnline = useSelector((s) => s.presence.online.includes(otherId));
 
   const [other, setOther] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -90,7 +91,9 @@ function Inner() {
                 <span className="text-xs font-bold text-text-muted">{(other?.username || '??').slice(0, 2).toUpperCase()}</span>
               )}
             </div>
-            <span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-cyan ring-2 ring-white" />
+            {isOnline && (
+              <span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-cyan ring-2 ring-white" />
+            )}
           </div>
           <span className="font-bold text-night text-lg">{other?.username || 'Chat'}</span>
         </div>

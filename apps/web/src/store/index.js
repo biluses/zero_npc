@@ -6,6 +6,7 @@ import createWebStorage from 'redux-persist/lib/storage/createWebStorage';
 import authReducer from './slices/authSlice';
 import signupReducer from './slices/signupSlice';
 import notificationsReducer from './slices/notificationsSlice';
+import presenceReducer from './slices/presenceSlice';
 
 function createNoopStorage() {
   return {
@@ -22,6 +23,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   signup: signupReducer,
   notifications: notificationsReducer,
+  presence: presenceReducer,
 });
 
 const persistConfig = {

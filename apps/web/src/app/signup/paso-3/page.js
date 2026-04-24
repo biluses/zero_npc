@@ -62,17 +62,28 @@ export default function SignupStep3Page() {
   async function onSubmit() {
     setLoading(true);
     try {
-      // 1. Registro principal
+      // 1. Registro principal.
       await authApi.register({
         email: stored.email,
         password: stored.password,
         username: stored.username,
       });
 
-      // 2. Datos de perfil — login es necesario PRIMERO porque PATCH /users/me requiere auth.
-      // Pero el usuario aún no ha verificado email, así que login fallará con "Email not verified".
-      // Solución: posponer el PATCH /users/me y avatar a tras la verificación OTP.
-      // Guardamos los datos en Redux y los aplicamos en un useEffect tras el primer login OK.
+      // 2. Guardamos el avatar temporalmente en sessionStorage como base64,
+      //    porque aún no hay login (el user debe verificar el OTP primero).
+      //    Tras el primer login, `useApplyPendingSignup` aplica los datos.
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            sessionStorage.setItem('zero-npc-pending-avatar', reader.result);
+            sessionStorage.setItem('zero-npc-pending-avatar-type', file.type);
+          } catch (_e) {
+            // sessionStorage puede fallar si excede cuota; no bloqueamos el flujo.
+          }
+        };
+        reader.readAsDataURL(file);
+      }
 
       toast.success('Cuenta creada. Te hemos enviado un código por email.');
       router.replace(`/verify-otp?email=${encodeURIComponent(stored.email)}`);

@@ -25,6 +25,7 @@ export default function FriendsPage() {
 
 function FriendsContent() {
   const router = useRouter();
+  const onlineSet = useSelector((s) => s.presence.online);
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -84,8 +85,8 @@ function FriendsContent() {
                   </span>
                 )}
               </div>
-              {/* dot cyan: en este MVP marcamos online si tiene relationship aceptada (placeholder hasta socket users:online) */}
-              {u.relationship === 'accepted' && (
+              {/* dot cyan: conectado al slice `presence` (socket users:online) */}
+              {onlineSet.includes(u.id) && (
                 <span className="absolute right-0 top-0 h-3.5 w-3.5 rounded-full bg-cyan ring-2 ring-white" />
               )}
             </div>

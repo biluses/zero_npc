@@ -6,8 +6,10 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
+import { useSelector } from 'react-redux';
 import { authApi } from '@/services/authApi';
 import { setCredentials } from '@/store/slices/authSlice';
+import { applyPendingSignup } from '@/lib/applyPendingSignup';
 import PasswordInput from '@/components/forms/PasswordInput';
 import Logo from '@/components/brand/Logo';
 
@@ -27,6 +29,7 @@ import Logo from '@/components/brand/Logo';
 export default function LoginPage() {
   const router = useRouter();
   const dispatch = useDispatch();
+  const signupPending = useSelector((s) => s.signup);
 
   const initialEmail = typeof window !== 'undefined'
     ? window.localStorage.getItem('zero-npc-remember-email') || ''
@@ -45,6 +48,13 @@ export default function LoginPage() {
       dispatch(setCredentials(data));
       if (remember) window.localStorage.setItem('zero-npc-remember-email', email);
       else window.localStorage.removeItem('zero-npc-remember-email');
+
+      // Si venimos del flujo signup, aplicamos los datos pendientes
+      // (perfil + avatar) ahora que ya hay accessToken.
+      // Esperamos un tick para que el interceptor axios coja el token del store.
+      await new Promise((r) => setTimeout(r, 50));
+      await applyPendingSignup({ signup: signupPending, dispatch });
+
       toast.success('¡Bienvenid@!');
       router.replace('/profile');
     } catch (err) {

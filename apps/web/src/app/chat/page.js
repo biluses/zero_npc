@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
 import AuthGuard from '@/components/auth/AuthGuard';
 import AppShell from '@/components/layout/AppShell';
 import { chatApi } from '@/services/domainApi';
@@ -22,6 +23,7 @@ export default function ChatListPage() {
 
 function ChatListContent() {
   const router = useRouter();
+  const onlineSet = useSelector((s) => s.presence.online);
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -58,7 +60,9 @@ function ChatListContent() {
                     </span>
                   )}
                 </div>
-                <span className="absolute right-0 top-0 h-3 w-3 rounded-full bg-cyan ring-2 ring-white" />
+                {onlineSet.includes(t.userId) && (
+                  <span className="absolute right-0 top-0 h-3 w-3 rounded-full bg-cyan ring-2 ring-white" />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">

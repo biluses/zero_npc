@@ -103,6 +103,7 @@ function ProfileContent() {
           <h1 className="text-2xl font-bold text-night">{username}</h1>
         </div>
         {/* NO mostramos level/rating - tachados en XD */}
+        <Link href="/profile/edit" className="link-magenta text-xs mt-1">Editar perfil</Link>
       </div>
 
       {/* Tabs */}

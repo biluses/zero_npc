@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { getSocket, closeSocket } from '@/lib/socket';
 import { incrementUnread, setUnreadCount } from '@/store/slices/notificationsSlice';
+import { setOnline, clearPresence } from '@/store/slices/presenceSlice';
 import { notificationsApi } from '@/services/domainApi';
 
 const TYPE_LABEL = {
@@ -34,6 +35,7 @@ export default function SocketBridge() {
   useEffect(() => {
     if (!accessToken) {
       closeSocket();
+      dispatch(clearPresence());
       subscribed.current = false;
       return undefined;
     }
@@ -55,9 +57,15 @@ export default function SocketBridge() {
       toast.info(label);
     }
 
+    function onUsersOnline(userIds) {
+      dispatch(setOnline(userIds || []));
+    }
+
     socket.on('notification:new', onNotification);
+    socket.on('users:online', onUsersOnline);
     return () => {
       socket.off('notification:new', onNotification);
+      socket.off('users:online', onUsersOnline);
       subscribed.current = false;
     };
   }, [accessToken, dispatch]);

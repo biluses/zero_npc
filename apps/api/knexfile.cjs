@@ -25,14 +25,21 @@ function connectionFromEnv() {
   };
 }
 
+function testConnection() {
+  // En test NO usamos DATABASE_URL (que apunta a la BD dev).
+  // Forzamos conexión a una BD separada con los mismos credenciales.
+  return {
+    host: process.env.DB_HOST || 'localhost',
+    port: Number(process.env.DB_PORT) || 5544,
+    database: process.env.DB_NAME_TEST || 'zero_npc_test',
+    user: process.env.DB_USER || 'zero_npc',
+    password: process.env.DB_PASSWORD || 'zero_npc_dev_password',
+    ssl: false,
+  };
+}
+
 module.exports = {
   development: { ...base, connection: connectionFromEnv() },
-  test: {
-    ...base,
-    connection: {
-      ...connectionFromEnv(),
-      database: process.env.DB_NAME_TEST || 'zero_npc_test',
-    },
-  },
+  test: { ...base, connection: testConnection() },
   production: { ...base, connection: connectionFromEnv(), pool: { min: 2, max: 10 } },
 };
