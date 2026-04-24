@@ -1,0 +1,56 @@
+{
+  "name": "@zero-npc/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Zero NPC backend API (Express + Sequelize + Postgres + Socket.IO)",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "build": "echo 'No build step for api' && exit 0",
+    "lint": "eslint \"src/**/*.{js,cjs}\"",
+    "typecheck": "echo 'Typecheck skipped (JS project)' && exit 0",
+    "test": "jest --passWithNoTests",
+    "clean": "rm -rf node_modules dist coverage",
+    "db:migrate": "knex migrate:latest --knexfile knexfile.cjs",
+    "db:migrate:make": "knex migrate:make --knexfile knexfile.cjs",
+    "db:rollback": "knex migrate:rollback --knexfile knexfile.cjs",
+    "db:seed": "knex seed:run --knexfile knexfile.cjs",
+    "db:seed:make": "knex seed:make --knexfile knexfile.cjs"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "compression": "^1.7.5",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "knex": "^3.1.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "nanoid": "^3.3.7",
+    "nodemailer": "^6.9.16",
+    "pg": "^8.13.1",
+    "pg-hstore": "^2.3.4",
+    "pino": "^9.5.0",
+    "pino-pretty": "^13.0.0",
+    "resend": "^6.12.2",
+    "sequelize": "^6.37.5",
+    "socket.io": "^4.8.1",
+    "stripe": "^17.4.0",
+    "uuid": "^11.0.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9",
+    "supertest": "^7.0.0"
+  }
+}

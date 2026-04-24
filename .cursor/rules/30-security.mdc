@@ -1,0 +1,36 @@
+---
+description: Reglas de seguridad críticas y auditoría constante
+alwaysApply: true
+---
+
+# Seguridad
+
+## Reglas duras
+
+1. **Nunca** escribas `eval`, `new Function`, ni cargues código dinámicamente.
+2. **Nunca** commites `.env*` (excepto `.env.example`). El `.gitignore` ya lo bloquea.
+3. **Nunca** hagas SQL concatenando strings. Usa Sequelize (`Op.iLike`, parámetros, etc.) o raw queries con binds.
+4. **Siempre** valida entradas externas con Zod.
+5. **Siempre** verifica ownership de recursos antes de mutaciones (`token.currentOwnerId === user.id`, etc.).
+6. **Siempre** usa bcrypt para contraseñas (nunca sha/md5).
+7. **Siempre** verifica la firma del webhook Stripe con `constructEvent` y raw body.
+
+## Detección de payloads maliciosos
+
+El proyecto tuvo un payload ofuscado con la firma `global['_V']='5-ra'` en `server.js` heredado. CI revisa que no vuelva. Si detectas algo parecido (strings de >50 caracteres sin significado, `require(_)`, etc.), para inmediatamente y reporta.
+
+## Secretos
+
+- JWT secrets mínimos 32 chars.
+- Rotación al menos cada 90 días o ante cualquier sospecha.
+- Nunca los loguees. `logger` ya redacta `password`, `token`, `authorization`, `cookie`.
+
+## Referencias externas
+
+Solo las siguientes URLs/dominios están autorizadas como remote assets:
+
+- `files.stripe.com` (imágenes de productos en Stripe)
+- `*.zero-npc.com` (nuestros dominios)
+- Nuestro propio backend (`/uploads/*`)
+
+Cualquier otra URL externa requiere aprobación explícita del maintainer y justificación en `docs/adr/`.

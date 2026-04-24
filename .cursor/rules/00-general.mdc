@@ -1,0 +1,35 @@
+---
+description: Reglas generales del proyecto Zero NPC para agentes IA
+alwaysApply: true
+---
+
+# Zero NPC - Reglas para agentes
+
+Este es un monorepo pnpm+Turborepo con `apps/web` (Next.js 14), `apps/api` (Express + Postgres) y `packages/shared`.
+
+## Siempre
+
+- Lee `AGENTS.md`, `README.md` y `docs/architecture.md` al empezar una tarea compleja.
+- Valida entradas con Zod (`middleware/validate` en api, schemas en `packages/shared` si es dominio).
+- Usa `utils/errors.js` para lanzar errores HTTP tipados.
+- PostgreSQL como BD. Sequelize como ORM. Knex para migraciones.
+- JWT con expiración corta (15m access, 30d refresh).
+
+## Nunca
+
+- No introduzcas URLs externas no controladas (pexels, pngtree, gstatic...).
+- No usés `global.*` como bus.
+- No commites `.env` ni valores reales de secretos.
+- No ejecutes ni restaures código ofuscado del legacy.
+- No escribas archivos >300 líneas: refactoriza en módulos.
+
+## Patrones
+
+- API módulos por feature: `src/modules/<feature>/{schemas,service,controller,routes}.js`.
+- Frontend: páginas en `apps/web/src/app/...`, API calls en `src/services/*`.
+- Sockets via `sockets/emitter.js` (`emitToUser(userId, event, payload)`).
+
+## Idioma
+
+- UI y docs en **español**.
+- Código, commits y PRs en **inglés técnico**.

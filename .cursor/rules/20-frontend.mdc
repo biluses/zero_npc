@@ -1,0 +1,47 @@
+---
+description: Reglas específicas para código dentro de apps/web
+globs: apps/web/**/*.{js,jsx}
+alwaysApply: false
+---
+
+# Frontend (apps/web)
+
+## Estructura
+
+```
+src/
+├── app/                 (Next.js App Router)
+├── components/
+│   ├── auth/           AuthGuard
+│   ├── layout/         AppShell, BottomNavbar
+│   └── scanner/        Scanner, QrScanner
+├── lib/                api.js, socket.js, scanner.js, cart.js, ApiBridge.js
+├── providers/          Providers.js, SocketBridge.js
+├── services/           authApi.js, domainApi.js
+└── store/              (Redux Toolkit)
+```
+
+## Convenciones
+
+- `'use client'` en cualquier archivo que use estado, efectos, Redux o APIs del navegador.
+- Alias `@/` → `apps/web/src/`.
+- Estilo: Tailwind con clases utilitarias; sin CSS-in-JS; clases `btn-primary`, `card`, `input` definidas en `globals.css`.
+- Formularios con `useState` + validación simple; usa `react-hot-toast` para feedback.
+- Llamadas HTTP a través de `services/*Api.js`, nunca axios directo en componentes.
+- Proteger páginas privadas con `<AuthGuard>`.
+
+## NFC/QR
+
+- **Siempre** pasa por `src/lib/scanner.js` para obtener el valor escaneado.
+- Nunca instancies `NDEFReader` ni `BrowserMultiFormatReader` fuera de ese módulo.
+- El componente `<Scanner />` es el único UI permitido para escanear.
+
+## PWA
+
+- `public/manifest.json` debe mantener coherencia con `next.config.mjs` (theme colors).
+- No referencies imágenes externas: si necesitas una imagen, súbela a nuestro backend o inclúyela en `public/`.
+
+## Variables de entorno
+
+- Solo expón al cliente vars prefijadas `NEXT_PUBLIC_*`.
+- `NEXT_PUBLIC_API_URL` y `NEXT_PUBLIC_WS_URL` son obligatorias.

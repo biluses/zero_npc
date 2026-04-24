@@ -1,0 +1,45 @@
+# syntax=docker/dockerfile:1.7
+
+# Multi-stage Dockerfile for @zero-npc/web (Next.js 14, standalone output).
+# Imagen final mínima usando .next/standalone (~150MB en lugar de ~1GB).
+
+FROM node:20-alpine AS base
+ENV PNPM_HOME="/pnpm" \
+    PATH="/pnpm:$PATH" \
+    NEXT_TELEMETRY_DISABLED=1
+RUN npm install -g pnpm@9.15.4
+
+# --- Install deps ---------------------------------------------------------
+FROM base AS deps
+WORKDIR /repo
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* .npmrc ./
+COPY apps/web/package.json apps/web/package.json
+COPY packages/config/package.json packages/config/package.json
+COPY packages/shared/package.json packages/shared/package.json
+RUN pnpm install --frozen-lockfile --filter @zero-npc/web...
+
+# --- Build ----------------------------------------------------------------
+FROM deps AS builder
+WORKDIR /repo
+COPY apps/web ./apps/web
+COPY packages/shared ./packages/shared
+ENV NEXT_OUTPUT_TRACING_ROOT=/repo
+WORKDIR /repo/apps/web
+RUN pnpm build
+
+# --- Runtime --------------------------------------------------------------
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0"
+
+# El standalone output trae node_modules mínimos + server.js
+COPY --from=builder /repo/apps/web/.next/standalone ./
+COPY --from=builder /repo/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder /repo/apps/web/public ./apps/web/public
+
+EXPOSE 3000
+USER node
+CMD ["node", "apps/web/server.js"]

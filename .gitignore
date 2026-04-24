@@ -1,0 +1,92 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Testing
+coverage/
+.nyc_output/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Turbo
+.turbo/
+
+# Production builds
+build/
+dist/
+*.tsbuildinfo
+
+# Misc
+.DS_Store
+*.pem
+Thumbs.db
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment files
+.env
+.env*.local
+.env.development
+.env.production
+.env.staging
+# Keep .env.example tracked
+!.env.example
+
+# Editor directories and files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.swo
+
+# IDE - Cursor
+.cursor/cache/
+.cursor/projects/
+
+# OS
+._*
+
+# Logs
+logs/
+*.log
+
+# Local uploads (dev)
+uploads/
+tmp/
+temp/
+
+# Capacitor (fase 2)
+ios/
+android/
+capacitor.config.*.json
+
+# Tauri (fase 2)
+src-tauri/target/
+
+# Railway
+.railway/
+
+# Vercel
+.vercel/
+
+# Backup archives
+*.zip
+*.tar.gz
+*.tgz
+
+# Legacy folders (pre-monorepo migration)
+npc_be-main/
+npc_fe-main/

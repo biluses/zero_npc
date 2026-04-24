@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1.7
+
+# Multi-stage Dockerfile for @zero-npc/api (Express + Postgres).
+# Imagen final mínima usando `pnpm deploy` (~30-40% más pequeña).
+
+FROM node:20-alpine AS base
+ENV PNPM_HOME="/pnpm" \
+    PATH="/pnpm:$PATH"
+RUN npm install -g pnpm@9.15.4
+
+# --- Install all deps (incluye dev si las hubiera para build) -------------
+FROM base AS deps
+WORKDIR /repo
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* .npmrc ./
+COPY apps/api/package.json apps/api/package.json
+COPY packages/config/package.json packages/config/package.json
+COPY packages/shared/package.json packages/shared/package.json
+RUN pnpm install --frozen-lockfile --filter @zero-npc/api...
+
+# --- Copy source y deploy a /app/api con solo deps de producción ----------
+FROM deps AS pruned
+WORKDIR /repo
+COPY apps/api ./apps/api
+COPY packages/shared ./packages/shared
+RUN pnpm --filter @zero-npc/api deploy --prod /app/api
+
+# --- Runtime --------------------------------------------------------------
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=pruned /app/api ./
+EXPOSE 8000
+USER node
+CMD ["node", "src/server.js"]

@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-typecheck-build:
+    name: Lint · Typecheck · Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run tests
+        run: pnpm test
+
+  security-audit:
+    name: Security audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: pnpm audit (high+)
+        run: pnpm audit --audit-level=high || true
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify no obfuscated payloads
+        run: |
+          set -e
+          if grep -R \
+              --exclude-dir=node_modules \
+              --exclude-dir=.git \
+              --exclude-dir=.cursor \
+              --exclude-dir=docs \
+              --exclude-dir=npc_be-main \
+              --exclude-dir=npc_fe-main \
+              --exclude=AGENTS.md \
+              --exclude=.gitignore \
+              --exclude=ci.yml \
+              -nE "global\\['_V'\\]|_V\\s*=\\s*'5-ra'" . ; then
+            echo "::error::Obfuscated payload pattern detected"
+            exit 1
+          fi
+          echo "No obfuscated payload markers found."

@@ -1,0 +1,40 @@
+name: Deploy API (Railway)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "packages/**"
+      - "infra/docker/Dockerfile.api"
+      - ".github/workflows/deploy-api.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Railway deploy
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: |
+          curl -fsSL https://railway.app/install.sh | sh
+          echo "$HOME/.railway/bin" >> $GITHUB_PATH
+
+      - name: Deploy service
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE: ${{ secrets.RAILWAY_API_SERVICE }}
+        run: |
+          railway up --service "$RAILWAY_SERVICE" --detach
+
+      - name: Run migrations (optional)
+        if: ${{ success() }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE: ${{ secrets.RAILWAY_API_SERVICE }}
+        run: |
+          railway run --service "$RAILWAY_SERVICE" pnpm --filter @zero-npc/api db:migrate || true

@@ -1,0 +1,42 @@
+---
+description: Reglas específicas para código dentro de apps/api
+globs: apps/api/**/*.js
+alwaysApply: false
+---
+
+# Backend (apps/api)
+
+## Estructura
+
+```
+src/
+├── config/    env.js, logger.js, database.js
+├── middleware/
+├── models/    (Sequelize, index.js centraliza asociaciones)
+├── modules/   <feature>/{schemas, service, controller, routes}.js
+├── sockets/   index.js + emitter.js
+└── utils/     errors.js, jwt.js, password.js, email.js
+```
+
+## Convenciones
+
+- `'use strict'` al principio de cada archivo.
+- Nunca usar `global.*`; para eventos a usuarios llamar a `emitToUser(userId, event, payload)` desde `sockets/emitter.js`.
+- Todas las rutas autenticadas usan `requireAuth` (ver `middleware/auth.js`).
+- Todos los bodies/queries/params validan con Zod via `middleware/validate.js`.
+- Errores tipados: `BadRequestError`, `UnauthorizedError`, `ForbiddenError`, `NotFoundError`, `ConflictError`, `ValidationError` en `utils/errors.js`.
+- Transacciones para operaciones multi-tabla (ver `exchanges.service.js`).
+
+## Base de datos
+
+- PostgreSQL 16. Sequelize v6 con `underscored: true`. UUID primary keys.
+- Migraciones Knex en `migrations/`. Crea una nueva con `pnpm db:migrate:make <nombre>`.
+- `ENUM`s usan `useNative: true` + `enumName` para tener tipos Postgres reales.
+
+## Seguridad
+
+- JWT: `issuer=zero-npc`, `audience=zero-npc-web`.
+- Bcrypt 12 salt rounds.
+- Rate limit global + específico para `/auth/*`.
+- Helmet y CORS estricto configurados en `app.js`.
+- Stripe webhook recibe **raw body** (configurado antes del `express.json`).

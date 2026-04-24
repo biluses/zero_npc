@@ -1,0 +1,40 @@
+# docker-compose.dev.yml — modo desarrollo con hot-reload (bind mounts).
+#
+# Uso (desde la raíz del repo):
+#   docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.dev.yml up
+#
+# Modo producción (imágenes builded, sin hot-reload):
+#   docker compose -f infra/docker/docker-compose.yml up
+
+name: zero-npc
+
+services:
+  api:
+    image: node:20-alpine
+    build: !reset null
+    command: sh -c "npm install -g pnpm@9.15.4 && cd /repo && pnpm install --filter @zero-npc/api... && cd apps/api && pnpm dev"
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+    volumes:
+      - ../..:/repo:cached
+      - api_node_modules:/repo/node_modules
+    working_dir: /repo
+
+  web:
+    image: node:20-alpine
+    build: !reset null
+    command: sh -c "npm install -g pnpm@9.15.4 && cd /repo && pnpm install --filter @zero-npc/web... && cd apps/web && pnpm dev"
+    environment:
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: "1"
+    volumes:
+      - ../..:/repo:cached
+      - web_node_modules:/repo/node_modules
+      - web_next_cache:/repo/apps/web/.next
+    working_dir: /repo
+
+volumes:
+  api_node_modules:
+  web_node_modules:
+  web_next_cache:
