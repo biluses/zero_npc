@@ -4,7 +4,8 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistReducer, persistStore } from 'redux-persist';
 import createWebStorage from 'redux-persist/lib/storage/createWebStorage';
 import authReducer from './slices/authSlice';
-import uiReducer from './slices/uiSlice';
+import signupReducer from './slices/signupSlice';
+import notificationsReducer from './slices/notificationsSlice';
 
 function createNoopStorage() {
   return {
@@ -19,7 +20,8 @@ const storage =
 
 const rootReducer = combineReducers({
   auth: authReducer,
-  ui: uiReducer,
+  signup: signupReducer,
+  notifications: notificationsReducer,
 });
 
 const persistConfig = {

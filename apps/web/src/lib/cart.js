@@ -2,6 +2,11 @@
 
 const KEY = 'zero-npc-cart';
 
+/**
+ * Cart item shape (unificado):
+ *   { id, name, priceCents, currency, imageUrl, qty, color?, size? }
+ */
+
 export function getCart() {
   if (typeof window === 'undefined') return [];
   try {
@@ -18,15 +23,19 @@ export function setCart(items) {
 
 export function addToCart(item) {
   const cart = getCart();
-  const existing = cart.find((c) => c.productId === item.productId);
-  if (existing) existing.quantity += item.quantity || 1;
-  else cart.push({ ...item, quantity: item.quantity || 1 });
+  const variantKey = `${item.id}::${item.color || ''}::${item.size || ''}`;
+  const existing = cart.find((c) => `${c.id}::${c.color || ''}::${c.size || ''}` === variantKey);
+  if (existing) {
+    existing.qty += item.qty || 1;
+  } else {
+    cart.push({ qty: 1, ...item });
+  }
   setCart(cart);
   return cart;
 }
 
-export function removeFromCart(productId) {
-  const cart = getCart().filter((c) => c.productId !== productId);
+export function removeFromCart(id) {
+  const cart = getCart().filter((c) => c.id !== id);
   setCart(cart);
   return cart;
 }
@@ -36,5 +45,5 @@ export function clearCart() {
 }
 
 export function totalCents(cart) {
-  return cart.reduce((acc, c) => acc + c.priceCents * c.quantity, 0);
+  return cart.reduce((acc, c) => acc + (c.priceCents || 0) * (c.qty || 1), 0);
 }

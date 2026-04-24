@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
+import { toast } from 'react-toastify';
 import AuthGuard from '@/components/auth/AuthGuard';
 import AppShell from '@/components/layout/AppShell';
 import { productsApi, tokensApi } from '@/services/domainApi';
@@ -39,28 +39,26 @@ function RegisterInner() {
   }
 
   return (
-    <div>
-      <h1 className="text-xl font-bold">Registrar pin</h1>
-      <p className="mt-1 text-xs text-white/60">UID: {tagUid}</p>
+    <div className="px-4 pt-2 pb-8">
+      <h1 className="text-xl font-bold text-night">Registrar pin</h1>
+      <p className="mt-1 text-xs text-text-muted">UID: {tagUid}</p>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
-        <label className="block text-sm">
-          <span className="mb-1 block text-white/70">Producto asociado</span>
+        <div>
+          <label className="block text-sm text-night mb-1.5 px-1">Producto asociado</label>
           <select
-            className="input"
+            className="input-pill"
             value={productId}
             onChange={(e) => setProductId(e.target.value)}
             required
           >
             <option value="">Selecciona un producto…</option>
             {products.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
+              <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
-        </label>
-        <button className="btn-primary w-full" disabled={loading || !productId}>
+        </div>
+        <button className="btn-yellow" disabled={loading || !productId}>
           {loading ? 'Registrando…' : 'Registrar'}
         </button>
       </form>
@@ -71,7 +69,7 @@ function RegisterInner() {
 export default function RegisterPinPage() {
   return (
     <AuthGuard>
-      <AppShell>
+      <AppShell hideNav header="back" title="Registrar pin">
         <Suspense>
           <RegisterInner />
         </Suspense>

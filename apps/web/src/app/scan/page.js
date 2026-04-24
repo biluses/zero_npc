@@ -1,18 +1,21 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { toast } from 'react-toastify';
 import AuthGuard from '@/components/auth/AuthGuard';
-import AppShell from '@/components/layout/AppShell';
 import Scanner from '@/components/scanner/Scanner';
 import { tokensApi } from '@/services/domainApi';
 
+/**
+ * Scan — XD `Scan.png`. Camera viewfinder fullscreen.
+ * Sin AppShell ni BottomNavbar para tener pantalla completa.
+ */
 export default function ScanPage() {
   return (
     <AuthGuard>
-      <AppShell hideNav={false}>
+      <div className="fixed inset-0 z-50 bg-night">
         <ScanContent />
-      </AppShell>
+      </div>
     </AuthGuard>
   );
 }

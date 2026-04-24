@@ -2,7 +2,7 @@
 
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-import { Toaster } from 'react-hot-toast';
+import { ToastContainer } from 'react-toastify';
 import { store, persistor } from '@/store';
 import SocketBridge from './SocketBridge';
 import ApiBridge from '@/lib/ApiBridge';
@@ -14,11 +14,13 @@ export default function Providers({ children }) {
         <ApiBridge />
         <SocketBridge />
         {children}
-        <Toaster
+        <ToastContainer
           position="top-center"
-          toastOptions={{
-            style: { background: '#22222d', color: '#fff', border: '1px solid #2e2e3b' },
-          }}
+          autoClose={3500}
+          newestOnTop
+          closeOnClick
+          theme="light"
+          toastClassName="!rounded-2xl"
         />
       </PersistGate>
     </Provider>

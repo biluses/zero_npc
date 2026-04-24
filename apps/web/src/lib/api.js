@@ -40,4 +40,15 @@ export function unwrap(promise) {
   return promise.then((r) => r.data?.data ?? r.data);
 }
 
+/**
+ * Returns `{ items, meta }` from paginated endpoints `{ status, data: [...], meta: {...} }`.
+ * Si `meta` no viene, devuelve `{ items: data, meta: null }`.
+ */
+export function unwrapPaginated(promise) {
+  return promise.then((r) => ({
+    items: r.data?.data ?? [],
+    meta: r.data?.meta ?? null,
+  }));
+}
+
 export default api;

@@ -19,6 +19,10 @@ const productsRoutes = require('./modules/products/products.routes');
 const shopRoutes = require('./modules/shop/shop.routes');
 const chatRoutes = require('./modules/chat/chat.routes');
 const usersRoutes = require('./modules/users/users.routes');
+const postsRoutes = require('./modules/posts/posts.routes');
+const friendsRoutes = require('./modules/friends/friends.routes');
+const notificationsRoutes = require('./modules/notifications/notifications.routes');
+const policyRoutes = require('./modules/policy/policy.routes');
 
 const env = loadEnv();
 
@@ -57,6 +61,11 @@ app.use('/api/v1/exchanges', exchangesRoutes);
 app.use('/api/v1/products', productsRoutes);
 app.use('/api/v1/shop', shopRoutes);
 app.use('/api/v1/chat', chatRoutes);
+app.use('/api/v1/posts', postsRoutes);
+app.use('/api/v1/friends', friendsRoutes);
+app.use('/api/v1/notifications', notificationsRoutes);
+// Policy es PÚBLICO (sin requireAuth) por diseño.
+app.use('/api/v1/policies', policyRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

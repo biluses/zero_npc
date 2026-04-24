@@ -5,7 +5,10 @@ const { z } = require('zod');
 const { Op } = require('sequelize');
 const { requireAuth } = require('../../middleware/auth');
 const { validate } = require('../../middleware/validate');
-const { ChatMessage, User } = require('../../models');
+const { ChatMessage, User, Notification } = require('../../models');
+const { createNotification } = require('../../utils/notifications');
+
+const MESSAGE_NOTIF_COALESCE_MS = 5 * 60 * 1000; // No spammear: max 1 notif/5min por sender→recipient
 
 const router = Router();
 router.use(requireAuth);
@@ -105,6 +108,24 @@ router.post(
     });
     const { emitToUser } = require('../../sockets/emitter');
     emitToUser(recipientId, 'chat:new', message.toJSON());
+
+    // Notif persistida con coalesce: evita spam si hay conversación activa.
+    const recentNotif = await Notification.findOne({
+      where: { userId: recipientId, type: 'message_new' },
+      order: [['createdAt', 'DESC']],
+    });
+    const fresh =
+      !recentNotif ||
+      (recentNotif.payload?.fromUserId !== req.user.id) ||
+      (Date.now() - new Date(recentNotif.createdAt).getTime() > MESSAGE_NOTIF_COALESCE_MS);
+    if (fresh) {
+      await createNotification({
+        userId: recipientId,
+        type: 'message_new',
+        payload: { fromUserId: req.user.id, messageId: message.id },
+      });
+    }
+
     res.status(201).json({ status: 'ok', data: message });
   }),
 );

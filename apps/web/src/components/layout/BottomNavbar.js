@@ -3,51 +3,70 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
+import {
+  ProfileIcon,
+  CommunityIcon,
+  TokenBoxIcon,
+  StoreIcon,
+  QrIcon,
+} from '@/components/brand/icons';
+
+/**
+ * BottomNavbar fiel al XD `user-profile-structure-with-bottom-app-sticky-bar.png`.
+ * 5 slots: Yo | Comunidad | FAB QR (negro/amarillo) → Scan | Tokens | Store
+ *
+ * El FAB central es elevado, fondo negro circular grande con icono QR amarillo.
+ */
 
 const tabs = [
-  { href: '/home', label: 'Inicio', icon: '🏠' },
-  { href: '/wardrobe', label: 'Armario', icon: '👕' },
-  { href: '/scan', label: 'Escanear', icon: '📡', primary: true },
-  { href: '/store', label: 'Tienda', icon: '🛍️' },
-  { href: '/profile', label: 'Perfil', icon: '👤' },
+  { href: '/profile', label: 'Yo', Icon: ProfileIcon, matches: ['/profile', '/wardrobe', '/friends'] },
+  { href: '/community', label: 'Comunidad', Icon: CommunityIcon, matches: ['/community', '/post'] },
+  { href: '/scan', label: 'Escanear', Icon: QrIcon, primary: true, matches: ['/scan'] },
+  { href: '/tokens', label: 'Tokens', Icon: TokenBoxIcon, matches: ['/tokens'] },
+  { href: '/store', label: 'Store', Icon: StoreIcon, matches: ['/store', '/cart', '/checkout', '/product'] },
 ];
+
+function isActive(pathname, t) {
+  if (!pathname) return false;
+  if (pathname === t.href) return true;
+  return t.matches.some((m) => pathname === m || pathname.startsWith(`${m}/`));
+}
 
 export default function BottomNavbar() {
   const pathname = usePathname();
+
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-ink-700 bg-ink-900/95 backdrop-blur safe-bottom">
-      <ul className="mx-auto flex max-w-md items-center justify-between px-3 py-2">
-        {tabs.map((t) => {
-          const active = pathname === t.href || pathname?.startsWith(`${t.href}/`);
-          if (t.primary) {
-            return (
-              <li key={t.href}>
-                <Link
-                  href={t.href}
-                  className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-500 text-white shadow-brand"
-                  aria-label={t.label}
-                >
-                  <span className="text-2xl">{t.icon}</span>
-                </Link>
-              </li>
-            );
-          }
+    <nav className="bottom-nav" role="navigation" aria-label="Navegación principal">
+      {tabs.map((t) => {
+        const active = isActive(pathname, t);
+        if (t.primary) {
           return (
-            <li key={t.href}>
-              <Link
-                href={t.href}
-                className={clsx(
-                  'flex flex-col items-center gap-0.5 px-3 py-2 text-[11px]',
-                  active ? 'text-brand-300' : 'text-white/60',
-                )}
-              >
-                <span className="text-lg leading-none">{t.icon}</span>
-                <span>{t.label}</span>
-              </Link>
-            </li>
+            <Link
+              key={t.href}
+              href={t.href}
+              aria-label={t.label}
+              className="-translate-y-3 flex h-16 w-16 items-center justify-center rounded-full bg-night shadow-lg active:scale-95 transition"
+            >
+              <t.Icon size={32} color="#EEFF00" />
+            </Link>
           );
-        })}
-      </ul>
+        }
+        return (
+          <Link
+            key={t.href}
+            href={t.href}
+            aria-label={t.label}
+            aria-current={active ? 'page' : undefined}
+            className={clsx(
+              'flex flex-col items-center gap-1 px-2 py-2 text-[11px] font-medium transition',
+              active ? 'text-night' : 'text-text-muted',
+            )}
+          >
+            <t.Icon size={26} className="shrink-0" />
+            <span>{t.label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }

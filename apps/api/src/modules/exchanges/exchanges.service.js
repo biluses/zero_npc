@@ -11,6 +11,7 @@ const {
   ConflictError,
 } = require('../../utils/errors');
 const { emitToUser } = require('../../sockets/emitter');
+const { createNotification } = require('../../utils/notifications');
 const { loadEnv } = require('../../config/env');
 
 const env = loadEnv();
@@ -55,6 +56,15 @@ async function initiate({ user, tokenId, recipientId, message }) {
     );
 
     emitToUser(recipientId, 'exchange:pending', { exchangeId: exchange.id, tokenId, senderId: user.id });
+
+    // Notif persistida + push socket al destinatario.
+    await createNotification({
+      userId: recipientId,
+      type: 'token_received',
+      payload: { exchangeId: exchange.id, tokenId, fromUserId: user.id },
+      transaction: tx,
+    });
+
     return exchange;
   });
 }
@@ -86,6 +96,15 @@ async function respond({ user, exchangeId, action }) {
     await exchange.save({ transaction: tx });
 
     emitToUser(exchange.senderId, `exchange:${exchange.status}`, { exchangeId: exchange.id });
+
+    // Notif al sender informando del resultado.
+    await createNotification({
+      userId: exchange.senderId,
+      type: action === 'accept' ? 'token_accepted' : 'token_rejected',
+      payload: { exchangeId: exchange.id, byUserId: user.id },
+      transaction: tx,
+    });
+
     return exchange;
   });
 }
@@ -129,6 +148,20 @@ async function validate({ user, exchangeId, tagUid, scanMethod }) {
     emitToUser(exchange.senderId, 'exchange:validated', { exchangeId: exchange.id });
     emitToUser(exchange.recipientId, 'exchange:validated', { exchangeId: exchange.id });
 
+    // Notif a ambos lados informando de la validación física completada.
+    await createNotification({
+      userId: exchange.senderId,
+      type: 'exchange_validated',
+      payload: { exchangeId: exchange.id, withUserId: exchange.recipientId },
+      transaction: tx,
+    });
+    await createNotification({
+      userId: exchange.recipientId,
+      type: 'exchange_validated',
+      payload: { exchangeId: exchange.id, withUserId: exchange.senderId },
+      transaction: tx,
+    });
+
     return exchange;
   });
 }
@@ -153,6 +186,14 @@ async function cancel({ user, exchangeId }) {
     }
 
     emitToUser(exchange.recipientId, 'exchange:cancelled', { exchangeId: exchange.id });
+
+    await createNotification({
+      userId: exchange.recipientId,
+      type: 'exchange_cancelled',
+      payload: { exchangeId: exchange.id, byUserId: user.id },
+      transaction: tx,
+    });
+
     return exchange;
   });
 }

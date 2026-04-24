@@ -20,4 +20,52 @@ const authLimiter = rateLimit({
   message: { status: 'error', code: 'TOO_MANY_REQUESTS', message: 'Too many auth attempts' },
 });
 
-module.exports = { globalLimiter, authLimiter };
+/**
+ * Limiters específicos por acción de usuario autenticado.
+ * Key por user.id (cae al IP si no hay user) para que un atacante con muchas
+ * cuentas no consuma cuotas globales.
+ */
+function userKey(req) {
+  return req.user?.id || req.ip;
+}
+
+const postCreateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  keyGenerator: userKey,
+  standardHeaders: 'draft-7',
+  message: { status: 'error', code: 'TOO_MANY_REQUESTS', message: 'Too many posts created' },
+});
+
+const commentLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  keyGenerator: userKey,
+  standardHeaders: 'draft-7',
+  message: { status: 'error', code: 'TOO_MANY_REQUESTS', message: 'Too many comments' },
+});
+
+const friendRequestLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  keyGenerator: userKey,
+  standardHeaders: 'draft-7',
+  message: { status: 'error', code: 'TOO_MANY_REQUESTS', message: 'Too many friend requests' },
+});
+
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  keyGenerator: userKey,
+  standardHeaders: 'draft-7',
+  message: { status: 'error', code: 'TOO_MANY_REQUESTS', message: 'Too many uploads' },
+});
+
+module.exports = {
+  globalLimiter,
+  authLimiter,
+  postCreateLimiter,
+  commentLimiter,
+  friendRequestLimiter,
+  uploadLimiter,
+};

@@ -1,5 +1,21 @@
 import './globals.css';
+import 'react-toastify/dist/ReactToastify.css';
+import { Inter, Montserrat } from 'next/font/google';
 import Providers from '@/providers/Providers';
+
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-montserrat',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 export const metadata = {
   title: {
@@ -18,7 +34,7 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: '#7840ff',
+  themeColor: '#EEFF00',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -27,8 +43,8 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es">
-      <body>
+    <html lang="es" className={`${montserrat.variable} ${inter.variable}`}>
+      <body className="font-sans">
         <Providers>{children}</Providers>
       </body>
     </html>

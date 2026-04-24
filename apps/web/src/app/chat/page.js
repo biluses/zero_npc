@@ -1,51 +1,100 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/auth/AuthGuard';
 import AppShell from '@/components/layout/AppShell';
 import { chatApi } from '@/services/domainApi';
 
+/**
+ * Chat list — XD `Chat (Overview).png`.
+ * Header: solo título "Chat" centrado bold.
+ * Lista cards: avatar (dot cyan) + nombre + último mensaje + timestamp.
+ */
 export default function ChatListPage() {
   return (
     <AuthGuard>
-      <AppShell>
-        <Inner />
-      </AppShell>
+      <ChatListContent />
     </AuthGuard>
   );
 }
 
-function Inner() {
+function ChatListContent() {
+  const router = useRouter();
   const [threads, setThreads] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    chatApi.threads().then(setThreads).catch(() => toast.error('Error'));
+    (async () => {
+      try {
+        const r = await chatApi.threads();
+        setThreads(r);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
   return (
-    <div>
-      <h1 className="mb-4 text-xl font-bold">Mensajes</h1>
-      {threads.length === 0 ? (
-        <p className="text-sm text-white/60">No tienes conversaciones.</p>
-      ) : (
-        <ul className="space-y-2">
-          {threads.map((t) => (
-            <li key={t.userId} className="card">
-              <Link href={`/chat/${t.userId}`} className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">{t.user?.username || t.userId}</p>
-                  <p className="text-xs text-white/60 truncate max-w-[220px]">{t.lastMessage}</p>
+    <AppShell header="back" title="Chat" onBack={() => router.push('/profile')}>
+      <ul className="px-4 pt-2 divide-y divide-border-soft">
+        {threads.map((t) => (
+          <li key={t.userId}>
+            <button
+              type="button"
+              onClick={() => router.push(`/chat/${t.userId}`)}
+              className="w-full flex items-center gap-3 py-3 text-left hover:bg-surface transition rounded-lg px-2"
+            >
+              <div className="relative shrink-0">
+                <div className="h-12 w-12 rounded-full overflow-hidden bg-surface flex items-center justify-center">
+                  {t.user?.profilePicture ? (
+                    <Image src={t.user.profilePicture} alt="" width={48} height={48} className="object-cover h-full w-full" />
+                  ) : (
+                    <span className="text-xs font-bold text-text-muted">
+                      {(t.user?.username || '??').slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
                 </div>
-                {t.unreadCount > 0 && (
-                  <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs">{t.unreadCount}</span>
-                )}
-              </Link>
-            </li>
-          ))}
-        </ul>
+                <span className="absolute right-0 top-0 h-3 w-3 rounded-full bg-cyan ring-2 ring-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-night truncate">{t.user?.username || 'Usuario'}</span>
+                  {t.unreadCount > 0 && (
+                    <span className="ml-1 inline-flex h-5 min-w-[20px] px-1.5 items-center justify-center rounded-full bg-magenta text-white text-[10px] font-bold">
+                      {t.unreadCount}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-text-muted truncate">{t.lastMessage || 'Nada'}</p>
+              </div>
+              <span className="text-xs text-text-muted ml-auto shrink-0">{shortTime(t.lastMessageAt)}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {!loading && threads.length === 0 && (
+        <p className="text-center text-text-muted text-sm py-8 px-4">
+          Aún no hay chats. Acepta un token y abre uno nuevo.
+        </p>
       )}
-    </div>
+    </AppShell>
   );
+}
+
+function shortTime(d) {
+  if (!d) return '';
+  const date = new Date(d);
+  const today = new Date();
+  if (date.toDateString() === today.toDateString()) {
+    return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  }
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return 'Ayer';
+  return date.toLocaleDateString('es-ES', { weekday: 'long' }).replace(/^./, (c) => c.toUpperCase());
 }

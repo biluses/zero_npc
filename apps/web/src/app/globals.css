@@ -4,55 +4,159 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   html,
   body {
-    @apply bg-ink-900 text-white antialiased;
+    @apply bg-white text-night antialiased;
     min-height: 100vh;
     min-height: 100dvh;
   }
 
   body {
-    font-family: var(--font-sans), system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-family: var(--font-montserrat), system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   }
 
   * {
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* Scrollbar discreto en desktop */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 3px;
+  }
 }
 
 @layer components {
+  /* Contenedor mobile-first */
   .container-app {
     @apply mx-auto w-full max-w-md px-4;
   }
 
+  /* CTA pill amarilla principal del XD */
+  .btn-yellow {
+    @apply inline-flex items-center justify-center w-full rounded-full bg-yellow px-6 py-4 text-base font-bold text-night shadow-card transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* CTA pill negra (alterna en algunos contextos) */
+  .btn-night {
+    @apply inline-flex items-center justify-center w-full rounded-full bg-night px-6 py-4 text-base font-bold text-white shadow-card transition active:scale-[0.98] disabled:opacity-50;
+  }
+
+  /* Botón outline (Google SSO) */
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-3 w-full rounded-full bg-white border border-border-soft px-6 py-3.5 text-sm font-medium text-night shadow-sm transition active:scale-[0.98];
+  }
+
+  /* Link magenta (acento del XD) */
+  .link-magenta {
+    @apply text-magenta font-semibold hover:opacity-80 transition;
+  }
+
+  /* Input pill (XD: white bg, soft border, rounded-full) */
+  .input-pill {
+    @apply w-full rounded-full bg-white border border-border-soft px-5 py-3.5 text-sm text-night placeholder:text-text-muted focus:border-night focus:outline-none transition;
+  }
+
+  /* Input con eye toggle (PasswordInput) */
+  .input-pill-pwd {
+    @apply input-pill pr-12;
+  }
+
+  /* Card con superficie suave (XD: cards de stats, secciones, etc.) */
+  .card-soft {
+    @apply rounded-2xl bg-surface p-4;
+  }
+
+  /* Card blanca con borde y sombra (cards modales, etc.) */
+  .card-white {
+    @apply rounded-2xl bg-white border border-border-soft p-4 shadow-card;
+  }
+
+  /* Header tabbed (Yo, Comunidad, Tokens, Store) */
+  .app-header-tabbed {
+    @apply flex items-center justify-between px-4 py-3 bg-white;
+  }
+
+  /* Header back (standalone screens) */
+  .app-header-back {
+    @apply flex items-center justify-between px-4 py-3 bg-white;
+  }
+
+  .app-title {
+    @apply text-2xl font-bold text-night;
+  }
+
+  /* Modal overlay */
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4;
+  }
+
+  .modal-card {
+    @apply w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl;
+  }
+
+  /* Bottom navbar */
+  .bottom-nav {
+    @apply fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-md items-end justify-between bg-white px-4 pt-2 shadow-nav;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Mantener compat con clases del MVP previo */
   .btn {
     @apply inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-medium transition;
   }
 
   .btn-primary {
-    @apply btn bg-brand-500 text-white shadow-brand hover:bg-brand-600 disabled:opacity-50;
+    @apply btn-yellow;
   }
 
   .btn-secondary {
-    @apply btn bg-ink-700 text-white hover:bg-ink-600 disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-full bg-surface px-6 py-3 text-sm font-medium text-night hover:bg-border-soft transition;
   }
 
   .btn-ghost {
-    @apply btn text-white/80 hover:text-white;
+    @apply inline-flex items-center justify-center rounded-full px-4 py-3 text-sm font-medium text-text-muted hover:text-night transition;
   }
 
   .input {
-    @apply w-full rounded-xl border border-ink-700 bg-ink-800 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-brand-500 focus:outline-none;
+    @apply input-pill;
   }
 
   .card {
-    @apply rounded-xl2 border border-ink-700 bg-ink-800 p-4 shadow;
+    @apply card-soft;
+  }
+}
+
+@layer utilities {
+  /* Bloqueo de scroll en modales */
+  .no-scroll {
+    overflow: hidden;
+    touch-action: none;
   }
 
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
+  /* Truncado multilinea */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }

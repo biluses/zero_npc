@@ -3,24 +3,32 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import Logo from '@/components/brand/Logo';
 
+/**
+ * Splash – 1 (XD).
+ * Fondo negro full, logo Zero NPC centrado, "comparte conexión" debajo.
+ * Tras 1.6s redirect: /profile si autenticado, /intro si no.
+ *
+ * No usa AppShell — pantalla full-bleed sin nav ni header.
+ */
 export default function SplashPage() {
   const router = useRouter();
   const accessToken = useSelector((s) => s.auth.accessToken);
 
   useEffect(() => {
     const t = setTimeout(() => {
-      router.replace(accessToken ? '/home' : '/login');
-    }, 800);
+      router.replace(accessToken ? '/profile' : '/intro');
+    }, 1600);
     return () => clearTimeout(t);
   }, [router, accessToken]);
 
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-gradient-to-b from-brand-700 to-ink-900">
-      <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-white/10 backdrop-blur">
-        <span className="text-3xl font-black text-white">0 NPC</span>
+    <div className="min-h-[100dvh] bg-night flex flex-col items-center justify-center px-6">
+      <div className="animate-fade-in-up flex flex-col items-center">
+        <Logo variant="light" width={220} height={64} priority />
+        <p className="mt-8 text-base text-white/80 tracking-wide">comparte conexión</p>
       </div>
-      <p className="mt-6 text-sm text-white/70">Cargando…</p>
     </div>
   );
 }

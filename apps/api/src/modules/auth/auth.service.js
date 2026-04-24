@@ -5,6 +5,7 @@ const { hashPassword, verifyPassword } = require('../../utils/password');
 const { issueTokenPair, verifyRefreshToken } = require('../../utils/jwt');
 const { generateOtp, sendMail } = require('../../utils/email');
 const { verificationEmail, passwordResetEmail } = require('../../utils/email-templates');
+const { grantDailyChargesIfDue } = require('../exchanges/exchanges.service');
 const {
   BadRequestError,
   ConflictError,
@@ -72,6 +73,10 @@ async function login({ email, password }) {
 
   user.lastLoginAt = new Date();
   await user.save();
+
+  // Refresca cargas diarias de tokens si ha pasado el TTL.
+  // El helper hace early-return si no toca todavía.
+  await grantDailyChargesIfDue(user);
 
   const tokens = issueTokenPair(user);
   return { user: user.toPublicJSON(), ...tokens };

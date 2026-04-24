@@ -7,17 +7,20 @@ import AppShell from '@/components/layout/AppShell';
 export default function CheckoutSuccessPage() {
   return (
     <AuthGuard>
-      <AppShell>
-        <div className="card text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-500/20 text-3xl">
+      <AppShell hideNav header={null}>
+        <div className="px-6 py-16 flex flex-col items-center text-center min-h-[60vh] justify-center">
+          <div className="h-20 w-20 rounded-full bg-yellow flex items-center justify-center text-night text-4xl font-bold">
             ✓
           </div>
-          <h1 className="text-xl font-bold">¡Pago completado!</h1>
-          <p className="mt-2 text-sm text-white/70">
+          <h1 className="mt-6 text-2xl font-bold text-night">¡Pago completado!</h1>
+          <p className="mt-2 text-sm text-text-muted">
             Recibirás un email con los detalles de tu pedido.
           </p>
-          <Link href="/home" className="btn-primary mt-6 inline-block">
+          <Link href="/profile" className="btn-yellow mt-8 max-w-xs">
             Volver al inicio
+          </Link>
+          <Link href="/orders" className="link-magenta mt-3 text-sm">
+            Ver mis pedidos
           </Link>
         </div>
       </AppShell>

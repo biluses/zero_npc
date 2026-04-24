@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import toast from 'react-hot-toast';
+import { toast } from 'react-toastify';
 import { authApi } from '@/services/authApi';
+import PasswordInput from '@/components/forms/PasswordInput';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -37,9 +38,7 @@ export default function RegisterPage() {
       <form onSubmit={onSubmit} className="mt-8 space-y-4">
         <input className="input" placeholder="Nombre de usuario" value={form.username} onChange={update('username')} required />
         <input className="input" type="email" placeholder="Email" autoComplete="email" value={form.email} onChange={update('email')} required />
-        <input
-          className="input"
-          type="password"
+        <PasswordInput
           placeholder="Contraseña (8+ caracteres)"
           autoComplete="new-password"
           value={form.password}
